@@ -70,6 +70,11 @@ in rec {
           pkgs.wpa_supplicant_gui
         ];
 
+        services.xserver.synaptics.enable = true;
+        services.xserver.synaptics.twoFingerScroll = true;
+        services.xserver.synaptics.buttonsMap = [ 1 3 2 ];
+        services.xserver.synaptics.tapButtons = false;
+
         # Wireless drivers
         nixpkgs.config.allowUnfree = true;
         networking.interfaceMonitor.enable = true;

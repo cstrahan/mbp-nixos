@@ -66,15 +66,20 @@ in rec {
         #services.xserver.autorun = true;
         #services.xserver.videoDrivers = [ "nvidia" ];
 
+        environment.systemPackages = [
+          pkgs.wpa_supplicant_gui
+        ];
+
         # Wireless drivers
         nixpkgs.config.allowUnfree = true;
         networking.interfaceMonitor.enable = true;
         boot.extraModulePackages = [
           config.boot.kernelPackages.broadcom_sta
         ];
-
         # For non-WICD, use:
         networking.wireless.enable = true;
+        networking.wireless.userControlled.enable = true;
+        networking.wireless.interfaces = [ "wlp3s0" ];
 
         # For WICD, use:
         #networking.wireless.enable = false;

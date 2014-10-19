@@ -82,6 +82,10 @@ in rec {
         #networking.wicd.enable = true;
 
         nix.maxJobs = 4;
+        nix.binaryCaches = [
+          "http://cache.nixos.org/"
+          "http://hydra.nixos.org/"
+        ];
       };
     type = "mbp";
     inherit system;

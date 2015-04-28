@@ -6,9 +6,11 @@
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+export NIXOS_CONFIG
 export NIX_PATH
-NIX_PATH="nixos-config=$DIR/configuration.nix:$NIX_PATH"
 
+NIXOS_CONFIG="$DIR/configuration.nix"
+NIX_PATH="nixos-config=$NIXOS_CONFIG:$NIX_PATH"
 if [[ -n "$1" ]]; then
   NIX_PATH="nixpkgs=$1:$NIX_PATH"
 fi

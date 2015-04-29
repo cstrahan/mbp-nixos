@@ -15,4 +15,4 @@ if [[ -n "$1" ]]; then
   NIX_PATH="nixpkgs=$1:$NIX_PATH"
 fi
 
-nix-build '<nixpkgs/nixos>' -A config.system.build.isoImage --show-trace
+nix-build '<nixpkgs/nixos>' -A config.system.build.isoImage --argstr system x86_64-linux --show-trace

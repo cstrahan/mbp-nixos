@@ -41,6 +41,13 @@
     "http://hydra.nixos.org/"
   ];
 
+  isoImage.contents = [
+    {
+      source = ./configuration.nix;
+      target = "configuration.nix";
+    }
+  ];
+
   nixpkgs.config.packageOverrides = pkgs:
     rec {
       vim =

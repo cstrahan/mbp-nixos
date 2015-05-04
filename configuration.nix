@@ -9,7 +9,12 @@
   environment.systemPackages = [
     pkgs.wpa_supplicant_gui
     pkgs.vim
+    pkgs.cryptsetup # needed for luks
   ];
+
+  # Some modules that may be needed for mounting anything ciphered
+  # (copied from modules/system/boot/luksroot.nix)
+  boot.initrd.availableKernelModules = [ "dm_mod" "dm_crypt" "cryptd" ] ++ config.boot.initrd.luks.cryptoModules;
 
   services.xserver.synaptics.enable = true;
   services.xserver.synaptics.twoFingerScroll = true;

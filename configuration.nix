@@ -52,4 +52,19 @@
       target = "configuration.nix";
     }
   ];
+
+  nixpkgs.config = {
+    allowUnfree = true;
+    icedtea = true;
+
+    firefox = {
+     enableGoogleTalkPlugin = true;
+     enableAdobeFlash = true;
+    };
+
+    chromium = {
+     enablePepperFlash = true;
+     enablePepperPDF = true;
+    };
+  }
 }

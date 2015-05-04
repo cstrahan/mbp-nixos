@@ -25,6 +25,7 @@
     config.boot.kernelPackages.broadcom_sta
   ];
   # For non-WICD, use:
+  networking.networkManager.enable = false;
   networking.wireless.enable = true;
   networking.wireless.userControlled.enable = true;
   networking.wireless.interfaces = [ "wlp3s0" ];

@@ -1,70 +1,80 @@
-{ config, pkgs, modulesPath, ... }:
+{ config, lib, pkgs, modulesPath, ... }:
 { imports = [
     <nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-graphical.nix>
+    #<nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-base.nix>
   ];
 
-  #services.xserver.autorun = true;
-  #services.xserver.videoDrivers = [ "nvidia" ];
+  boot.kernelPackages = pkgs.linuxPackages_4_2;
+  boot.extraModulePackages = [ config.boot.kernelPackages.broadcom_sta ];
+
+  i18n.consoleUseXkbConfig = true;
 
   environment.systemPackages = [
     pkgs.wpa_supplicant_gui
     pkgs.vim
-    pkgs.cryptsetup # needed for luks
+    pkgs.gparted
+    pkgs.vim
+    pkgs.bvi
+    pkgs.glxinfo
+    pkgs.xsel
+    pkgs.xclip
+    pkgs.mkpasswd
+    pkgs.zsh
+    pkgs.networkmanagerapplet
+    pkgs.git
+    pkgs.curl
+    pkgs.wget
   ];
 
-  # Some modules that may be needed for mounting anything ciphered
-  # (copied from modules/system/boot/luksroot.nix)
-  boot.initrd.availableKernelModules = [ "dm_mod" "dm_crypt" "cryptd" ] ++ config.boot.initrd.luks.cryptoModules;
-
-  services.xserver.synaptics.enable = true;
-  services.xserver.synaptics.twoFingerScroll = true;
-  services.xserver.synaptics.buttonsMap = [ 1 3 2 ];
-  services.xserver.synaptics.tapButtons = false;
-
-  networking.enableIPv6 = false;
-
-  # Wireless drivers
-  nixpkgs.config.allowUnfree = true;
-  networking.interfaceMonitor.enable = true;
-  boot.extraModulePackages = [
-    config.boot.kernelPackages.broadcom_sta
-  ];
-  # For non-WICD, use:
-  networking.networkManager.enable = false;
-  networking.wireless.enable = true;
-  networking.wireless.userControlled.enable = true;
-  networking.wireless.interfaces = [ "wlp3s0" ];
-
-  # For WICD, use:
-  #networking.wireless.enable = false;
-  #networking.useDHCP = false;
-  #networking.wicd.enable = true;
+  powerManagement.enable = true;
+  services.dbus.enable = true;
+  services.upower.enable = true;
+  services.xserver = {
+    enable = true;
+    autorun = lib.mkForce false;
+    xkbOptions = "ctrl:nocaps";
+    synaptics = {
+      enable = true;
+      twoFingerScroll = true;
+      buttonsMap = [ 1 3 2 ];
+      tapButtons = false;
+      accelFactor = "0.0055";
+      minSpeed = "0.95";
+      maxSpeed = "1.15";
+      palmDetect = true;
+    };
+    displayManager.sessionCommands = ''
+      ${pkgs.xorg.xset}/bin/xset r rate 220 50
+      if [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]]; then
+        eval "$(${pkgs.dbus.tools}/bin/dbus-launch --sh-syntax --exit-with-session)"
+        export DBUS_SESSION_BUS_ADDRESS
+      fi
+    '';
+  };
 
   nix.maxJobs = 4;
-  nix.binaryCaches = [
-    "http://cache.nixos.org/"
-    "http://hydra.nixos.org/"
-  ];
+  nix.requireSignedBinaryCaches = true;
+  nix.binaryCaches = [ "http://hydra.nixos.org" ];
+  nix.binaryCachePublicKeys = [ "hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs=" ];
 
-  isoImage.contents = [
-    {
-      source = ./configuration.nix;
-      target = "configuration.nix";
-    }
-  ];
+  networking.enableIPv6 = true;
+  networking.interfaceMonitor.enable = true;
+  networking.networkmanager.enable = lib.mkForce true;
+  networking.wireless.enable = lib.mkForce false;
+  networking.usePredictableInterfaceNames = true;
+
+  isoImage.contents = [ ];
 
   nixpkgs.config = {
     allowUnfree = true;
-    icedtea = true;
-
-    firefox = {
-     enableGoogleTalkPlugin = true;
-     enableAdobeFlash = true;
+    packageOverrides = super: let self = super.pkgs; in rec {
+      linux_4_2 = super.linux_4_2.override {
+        extraConfig = "BRCMFMAC_PCIE y";
+      };
     };
+  };
 
-    chromium = {
-     enablePepperFlash = true;
-     enablePepperPDF = true;
-    };
-  }
+  # Additional packages to include in the store.
+  system.extraDependencies = [ ];
+
 }

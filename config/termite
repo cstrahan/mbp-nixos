@@ -1,0 +1,58 @@
+[options]
+scroll_on_output = false
+scroll_on_keystroke = true
+audible_bell = false
+mouse_autohide = true
+allow_bold = true
+dynamic_title = true
+urgent_on_bell = true
+clickable_url = false
+font = PragmataPro 12
+scrollback_lines = 10000
+search_wrap = true
+icon_name = terminal
+
+# "system", "on" or "off"
+cursor_blink = off
+
+# "block", "underline" or "ibeam"
+cursor_shape = block
+
+# Hide links that are no longer valid in url select overlay mode
+filter_unmatched_urls = true
+
+# Tango (with black bg)
+# ---------------------
+[colors]
+cursor = #FFFFFF
+cursor_foreground = #000000
+foreground = #FFFFFF
+foreground_bold = #FFFFFF
+background = #000000
+
+# black
+color0  = #000000
+color8  = #555753
+# red
+color1  = #CC0000
+color9  = #EF2929
+# green
+color2  = #4E9A06
+color10 = #8AE234
+# yellow
+color3  = #C4A000
+color11 = #FCE94F
+# blue
+color4  = #3465A4
+color12 = #729FCF
+# magenta
+color5  = #75507B
+color13 = #AD7FA8
+# cyan
+color6  = #06989A
+color14 = #34E2E2
+# white
+color7  = #D3D7CF
+color15 = #EEEEEC
+
+# vim: ft=dosini cms=#%s

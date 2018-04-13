@@ -1,19 +1,18 @@
 { config, lib, pkgs, modulesPath, ... }:
 { imports = [
-    <nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-graphical.nix>
-    #<nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-base.nix>
+    <nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-graphical-kde.nix>
   ];
 
-  boot.kernelPackages = pkgs.linuxPackages_4_2;
   boot.extraModulePackages = [ config.boot.kernelPackages.broadcom_sta ];
+  boot.supportedFilesystems = [ "exfat" ];
 
   i18n.consoleUseXkbConfig = true;
 
+  environment.extraOutputsToInstall = [ ];
   environment.systemPackages = [
-    pkgs.wpa_supplicant_gui
-    pkgs.vim
     pkgs.gparted
     pkgs.vim
+    pkgs.neovim
     pkgs.bvi
     pkgs.glxinfo
     pkgs.xsel
@@ -24,7 +23,19 @@
     pkgs.git
     pkgs.curl
     pkgs.wget
+    pkgs.tmux
+    pkgs.termite
+    pkgs.tree
   ];
+
+  fonts = {
+    fontconfig.enable = true;
+    enableFontDir = true;
+    enableGhostscriptFonts = true;
+    fonts = with pkgs; [
+      pragmatapro
+    ];
+  };
 
   powerManagement.enable = true;
   services.dbus.enable = true;
@@ -33,48 +44,50 @@
     enable = true;
     autorun = lib.mkForce false;
     xkbOptions = "ctrl:nocaps";
-    synaptics = {
-      enable = true;
-      twoFingerScroll = true;
-      buttonsMap = [ 1 3 2 ];
-      tapButtons = false;
-      accelFactor = "0.0055";
-      minSpeed = "0.95";
-      maxSpeed = "1.15";
-      palmDetect = true;
-    };
-    displayManager.sessionCommands = ''
-      ${pkgs.xorg.xset}/bin/xset r rate 220 50
-      if [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]]; then
-        eval "$(${pkgs.dbus.tools}/bin/dbus-launch --sh-syntax --exit-with-session)"
-        export DBUS_SESSION_BUS_ADDRESS
-      fi
-    '';
+
+    autoRepeatDelay = 200;
+    autoRepeatInterval = 33; # 30hz
+
+    synaptics.enable = lib.mkForce false;
+    libinput.enable = true;
+    libinput.tapping = false;
+    libinput.tappingDragLock = false;
   };
 
+  nix.useSandbox = true;
   nix.maxJobs = 4;
   nix.requireSignedBinaryCaches = true;
-  nix.binaryCaches = [ "http://hydra.nixos.org" ];
-  nix.binaryCachePublicKeys = [ "hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs=" ];
 
   networking.enableIPv6 = true;
-  networking.interfaceMonitor.enable = true;
   networking.networkmanager.enable = lib.mkForce true;
+  networking.networkmanager.insertNameservers = [ "8.8.8.8" "8.8.4.4" ];
+  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
   networking.wireless.enable = lib.mkForce false;
-  networking.usePredictableInterfaceNames = true;
+  networking.firewall.enable = false;
 
   isoImage.contents = [ ];
+
+  boot.postBootCommands = ''
+    mkdir -p /root/.config/termite
+    cp -T ${./config/termite} /root/.config/termite/config
+    chmod u+w /root/.config/termite/config
+
+    cp -T ${./config/kcminputrc} /root/.config/kcminputrc
+    chmod u+w /root/.config/kcminputrc
+  '';
+
+  system.activationScripts.installerCustom = ''
+    mkdir -p /root/Desktop
+    ln -sfT ${pkgs.termite}/share/applications/termite.desktop /root/Desktop/termite.desktop
+  '';
 
   nixpkgs.config = {
     allowUnfree = true;
     packageOverrides = super: let self = super.pkgs; in rec {
-      linux_4_2 = super.linux_4_2.override {
-        extraConfig = "BRCMFMAC_PCIE y";
-      };
+      pragmatapro = self.callPackage ./pragmatapro.nix { };
     };
   };
 
   # Additional packages to include in the store.
   system.extraDependencies = [ ];
-
 }

@@ -74,6 +74,16 @@
 
     cp -T ${./config/kcminputrc} /root/.config/kcminputrc
     chmod u+w /root/.config/kcminputrc
+
+    mkdir -p /root/min-conf
+    cp -T ${./minimal-configuration.nix} /root/min-conf/configuration.nix
+    cp -T ${./pragmatapro.nix}           /root/min-conf/pragmatapro.nix
+    cat <<EOF >                          /root/min-conf/meta.nix
+    {
+      hostname = "cstrahan-nixos";
+      productName = "$(cat /sys/class/dmi/id/product_name)";
+    }
+    EOF
   '';
 
   system.activationScripts.installerCustom = ''
@@ -89,5 +99,9 @@
   };
 
   # Additional packages to include in the store.
-  system.extraDependencies = [ ];
+  system.extraDependencies = [
+    # include everything from our minimal configuration, so we don't have to
+    # download as much.
+    (import <nixpkgs/nixos> { configuration = import ./minimal-configuration.nix; }).system
+  ];
 }

@@ -1,7 +1,14 @@
-# Before installation:
+# Installation:
 #
-#   $ mkpasswd -m sha-512 > $mnt/etc/nixos/passwords/cstrahan
-
+#   $ mount /dev/disk/by-label/nixos /mnt
+#   $ mkdir -p /mnt/boot/efi
+#   $ nixos-generate-config --root /mnt
+#   $ cp -v min-conf/* /mnt/etc/nixos
+#   $ mkdir -p /mnt/etc/nixos/passwords -m 700
+#   $ mkpasswd -m sha-512 > /mnt/etc/nixos/passwords/cstrahan
+#   $ chmod 700 /mnt/etc/nixos/passwords/cstrahan
+#   $ mount /dev/disk/by-label/EFI /mnt/boot/efi
+#   $ nixos-install
 { config, lib, pkgs, ... }:
 
 # Per-machine settings.
@@ -15,26 +22,33 @@ in
 
 {
   imports = [
-    /etc/nixos/hardware-configuration.nix
+    ./hardware-configuration.nix
   ];
 
   system.stateVersion = "18.03";
 
   #boot.loader.efi.canTouchEfiVariables = true;
-  boot.supportedFilesystems = [ "exfat" ];
+  boot.loader.efi.efiSysMountPoint = "/boot/efi";
+  boot.loader.timeout = 8;
+  boot.loader.systemd-boot.enable = false;
+  boot.loader.grub = {
+    enable = true;
+    efiSupport = true;
+    efiInstallAsRemovable = true; # don't depend on NVRAM
+    device = "nodev"; # EFI only
+  };
+
+  boot.supportedFilesystems = [ "exfat" "btrfs" ];
   boot.kernelModules = [ "msr" "coretemp" ] ++ lib.optional isMBP "applesmc";
   boot.blacklistedKernelModules =
     # make my desktop use the `wl` module for WiFi.
     lib.optionals (!isMBP) [ "b43" "bcma" "bcma-pci-bridge" ];
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.timeout = 8;
 
   # Select internationalisation properties.
   time.timeZone = null;
   i18n.consoleUseXkbConfig = true;
 
   networking.hostName = meta.hostname;
-  networking.hostId = "0ae2b4e1";
 
   networking.networkmanager.enable = lib.mkForce true;
   networking.networkmanager.insertNameservers = [ "8.8.8.8" "8.8.4.4" ];
